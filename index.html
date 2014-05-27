@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <script type="text/javascript" src="parser.js"></script>
+    </head>
+    <body>
+		<ul id="results"></ul>
+    </body>
+    <script>
+    	(function () {
+			var results;
+	    	
+	    	this.assert = function assert (value, desc) {
+	    		var li = document.createElement('li');
+	    		li.className = value ? "Pass" : "Fail";
+	    		if (desc === undefined) {
+	    			desc = "Test";
+	    		}
+	    		li.appendChild(document.createTextNode(desc));
+	    		results.appendChild(li);
+	    		if (!value) {
+	    			li.parentNode.parentNode.className = "fail";
+	    		}
+	    		return li;
+	    	};
+
+	    	this.test = function test (name, callback) {
+	    		results = document.getElementById("results");
+	    		results = assert(true, name).appendChild(document.createElement("ul"));
+	    		callback();
+	    	};
+    	})();
+    	
+
+    	window.onload = function () {
+    		test("Infix to postfix", function () {
+				var parser = new Parser();
+
+	    		assert(parser.evaluate('3') === '3', "Single character 3");
+				assert(parser.evaluate('1 + 1') === '(+ 1 1)', "Basic addition 1 + 1");
+				assert(parser.evaluate('2 * 5 + 1') === '(+ (* 2 5) 1)', "Little more complex 2 * 5 + 1");
+				assert(parser.evaluate('2 * ( 5 + 1 )') === '(* 2 (+ 5 1))', "Brackets 2 * ( 5 + 1 )");
+				assert(parser.evaluate('2 * ( 5 / 1 )') === '(* 2 (/ 5 1))', "Brackets 2 * ( 5 / 1 )");
+				assert(parser.evaluate('3 * x + ( 9 + y ) / 4') === '(+ (* 3 x) (/ (+ 9 y) 4))', "Variables 3 * x + ( 9 + y ) / 4");
+				assert(parser.evaluate('3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3') === '(+ 3 (/ (* 4 2) (^ (- 1 5) (^ 2 3))))', "weight 3 (3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3)");
+				assert(parser.evaluate('a * b * c * d') === '(* (* (* a b) c) d)', "Nested variables a * b * c * d");
+				assert(parser.evaluate('a * a * b * c * c * c * d') === '(* (* (* (* (* (* a a) b) c) c) c) d)', "Nested Variables a * a * b * c * c * c * d");
+				assert(parser.evaluate('a * ( b / c ) * ( d / e ) * f') === '(* (* (* a (/ b c)) (/ d e)) f)', "a * ( b / c ) * ( d / e ) * f");
+				assert(parser.evaluate('( b / c ) * ( d / e ) * f * a') === '(* (* (* (/ b c) (/ d e)) f) a)', "( b / c ) * ( d / e ) * f * a");
+				assert(parser.evaluate('6 * 6 * ( 7 * 7 / 9 ) * ( 2 / 3 )') === '(* (* (* 6 6) (/ (* 7 7) 9)) (/ 2 3))', '6 * 6 * ( 7 * 7 / 9 ) * ( 2 / 3 )');
+				assert(parser.evaluate('a * a * ( b * b / c ) * ( d / e )') === '(* (* (* a a) (/ (* b b) c)) (/ d e))', 'a * a * ( b * b / c ) * ( d / e )');
+				assert(parser.evaluate('6 + 6 + ( ( 7 + 7 + 7 ) / 9 ) * ( 2 / 3 )') === '(+ (+ 6 6) (* (/ (+ (+ 7 7) 7) 9) (/ 2 3)))', '6 + 6 + ( ( 7 + 7 + 7 ) / 9 ) * ( 2 / 3 )');
+				assert(parser.evaluate('( x ^ a ) * ( y ^ b ) * ( x ^ c )') === '(* (* (^ x a) (^ y b)) (^ x c))', '( x ^ a ) * ( y ^ b ) * ( x ^ c )');
+				assert(false, "Cant have them all succeed");
+
+    		});
+    	}
+    </script>
+    <style>
+    	#results li.Pass {
+    		color:green;
+    	}
+    	#results li.Fail {
+    		color:red;
+    	}
+    </style>
+</html>

@@ -1,0 +1,14 @@
+{
+    "name": "Node Infix to prefix/postfix",
+    "version": "0.0.1",
+    "dependencies": {
+
+    },
+    "engines": {
+        "node": "0.8.x",
+        "npm": "1.1.x"
+    },
+    "scripts": {
+      "test": "node tests/test.js"
+    }
+}
