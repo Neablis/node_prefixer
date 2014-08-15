@@ -16,7 +16,7 @@
 	    		var li = document.createElement('li');
 	    		li.className = value ? "Pass" : "Fail";
 	    		if (desc === undefined) {
-	    			desc = "Test";
+	    			desc = 'Test';
 	    		}
 	    		li.appendChild(document.createTextNode(desc));
 	    		results.appendChild(li);
@@ -56,6 +56,36 @@
 				assert(false, "Cant have them all succeed");
 
     		});
+
+			test("Solver", function () {
+				var parser = new Parser();
+
+	    		assert(parser.solve('3') == '3', "Single character 3");
+				assert(parser.solve('1 + 1') == '2', "Basic addition 1 + 1");
+				assert(parser.solve('2 * 5 + 1') == '11', "Little more complex 2 * 5 + 1");
+				assert(parser.solve('2 * ( 5 + 1 )') == '12', "Brackets 2 * ( 5 + 1 )");
+				assert(parser.solve('$ ( 5 * ( -2 / 1 ) )') == '10', "absolute value $ ( 5 * ( -2 / 1 ) )");
+				assert(parser.solve('2 * ( 5 / 1 )') == '10', "Brackets 2 * ( 5 / 1 )");
+				assert(parser.solve('3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3') == '3.0001220703125', "weight 3 ( 3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3 )");
+				assert(parser.solve('6 * 6 * ( 7 * 7 / 9 ) * ( 2 / 3 )') == '130.66666666666666');
+				assert(parser.solve('6 + 6 + ( ( 7 + 7 + 7 ) / 9 ) * ( 2 / 3 )') == '13.555555555555555');
+				assert(false, "Cant have them all succeed");
+
+    		});
+
+
+    		function string_to_equation (string) {
+    			string = string.replace(/,/g, ' ');
+    			string = string.replace(/abs\(/g, ' $ ( 1 ');
+    			string = string.replace(/add/g, ' + ');
+    			string = string.replace(/subtract/g, ' - ');
+    			string = string.replace(/multiply/g, ' * ');
+    			string = string.replace(/\(/g, ' ( ');
+    			string = string.replace(/\)/g, ' ) ');
+				string = string.replace(/\s{2,}/g, ' ');
+				return string.trim();
+    		};
+    		var results = string_to_equation('abs(add(multiply(41,abs(27925)),abs(add(197,multiply(-1,35726)))))');
     	}
     </script>
     <style>

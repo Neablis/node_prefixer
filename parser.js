@@ -17,7 +17,21 @@
 
     Parser = function () {
         var that = this,
-            tokens;
+            tokens,
+            opers = 
+                {'+':function (a,b) {
+                    return parseFloat(a)+parseFloat(b);
+                }, '-': function (a,b) {
+                    return parseFloat(a)-parseFloat(b);
+                }, '*': function (a,b) {
+                    return parseFloat(a)*parseFloat(b);
+                }, '/': function (a,b) {
+                    return parseFloat(a)/parseFloat(b);
+                }, '^': function (a,b) {
+                    return Math.pow(parseFloat(a),parseInt(b));
+                }, '$': function (a,b) {
+                    return Math.abs(parseFloat(b));                                                    
+                }};
         this.stack = [];
         this.output = [];
         this.ast = null;
@@ -39,13 +53,28 @@
                     return that.print_infix(tree);
                 }
                 return '';
+            },
+            solve: function (tokens) {
+                tokens = tokens.replace(/\s{2,}/g, ' ').split(' ');
+                var tree = that.parse(tokens);
+                return this.solver(tree);
+            },
+            solver: function (tree) {
+                var fn = function () {};
+
+                if (typeof tree === 'object') {
+                    fn = opers[tree.operator];
+                    return fn(this.solver(tree.leaves[0]),this.solver(tree.leaves[1]));
+                } else {
+                    return tree;
+                }
             }
         };
     };
 
     Parser.prototype = {
-            operator: /[+\-*\/\^]/,
-            weights: {'+': 2, '-': 2, '*': 3, '/': 3, '%': 3, '^': 4},
+            operator: /[+\-*\/\^%$]/,
+            weights: {'+': 2, '-': 2, '*': 3, '/': 3, '%': 3, '^': 4, '$': 4},
             parse: function (tokens) {
 
                 // If only 1 token, that is your equation
@@ -142,7 +171,7 @@
                         op2 = this.stack[this.stack.length -1];
 
                         // either o1 is left-associative and its precedence is equal to that of o2, or o1 has precedence less than that of o2
-                        if ((op1 !== '^'  && this.weights[op1] <= this.weights[op2]) || (op1 === '^' && this.weights[op1] < this.weights[op2])) {
+                        if ((op1 !== '^'  && this.weights[op1] <= this.weights[op2]) || (op1 === '^' && this.weights[op1] < this.weights[op2]) || (op1 === '$')) {
                             // pop o2 off the stack, onto the output queue;
                             this.createNodeFromStack();
                         } else {
@@ -179,9 +208,14 @@
             //    Output  Output
             //
             createNodeFromStack: function () {
-                var right = this.output.pop(),
-                    left = this.output.pop(),
-                    node = this.makeNode(this.stack.pop(), [].concat(left, right));
+                var operator = this.stack.pop(),
+                    right,
+                    left, 
+                    node;
+
+                right = this.output.pop(),
+                left = this.output.pop(),
+                node = this.makeNode(operator, [].concat(left, right));
 
                 this.output.push(node);
             },
