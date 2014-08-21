@@ -64,6 +64,9 @@
 
                 if (typeof tree === 'object') {
                     fn = opers[tree.operator];
+                    if (fn === undefined) {
+                        debugger;
+                    }
                     return fn(this.solver(tree.leaves[0]),this.solver(tree.leaves[1]));
                 } else {
                     return tree;
